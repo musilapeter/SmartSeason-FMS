@@ -3,11 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sprout, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { UserRole } from "@shared/index";
 
-/**
- * Login — authentication page with sign-in and sign-up tabs.
- */
 export function Login() {
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -16,58 +12,101 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (loading) return; // prevents duplicate requests
+
     setLoading(true);
     setError("");
+    setSuccess("");
 
     const form = new FormData(e.currentTarget);
-    const email = form.get("email") as string;
-    const password = form.get("password") as string;
+
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "").trim();
+
+    // Validation
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
 
     try {
       if (mode === "login") {
         await signIn(email, password);
-      } else {
-        const fullName = form.get("full_name") as string;
-        const role = (form.get("role") as UserRole) || UserRole.FIELD_AGENT;
-        await signUp(email, password, fullName, role);
+        navigate("/");
+        return;
       }
-      navigate("/");
+
+      const fullName = String(form.get("full_name") || "").trim();
+      if (!fullName) {
+        setError("Full name is required.");
+        setLoading(false);
+        return;
+      }
+
+      await signUp(email, password, fullName);
+
+      setSuccess(
+        "Account created successfully. Check your email to confirm your account."
+      );
+
+      setMode("login");
     } catch (err: any) {
-      setError(err.message || "Authentication failed");
+      if (err?.status === 429) {
+        setError("Too many requests. Please wait and try again.");
+      } else {
+        setError(err?.message || "Authentication failed.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   const inputStyles = cn(
-    "w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary",
-    "placeholder:text-text-muted outline-none",
-    "focus:border-brand focus:ring-1 focus:ring-brand/30 transition-colors"
+    "w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand/30",
+    "placeholder:text-text-muted"
   );
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-sm animate-fade-in">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 border border-brand/20 mb-4">
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/20 bg-brand/10">
             <Sprout className="h-7 w-7 text-brand" />
           </div>
-          <h1 className="text-xl font-bold text-text-primary">SmartSeason</h1>
-          <p className="text-sm text-text-muted mt-1">Field Monitoring System</p>
+
+          <h1 className="text-xl font-bold text-text-primary">
+            SmartSeason
+          </h1>
+
+          <p className="mt-1 text-sm text-text-muted">
+            Field Monitoring System
+          </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex rounded-lg border border-border bg-surface p-1 mb-6">
+        {/* Tabs */}
+        <div className="mb-6 flex rounded-lg border border-border bg-surface p-1">
           {(["login", "signup"] as const).map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => {
+                if (loading) return;
                 setMode(tab);
                 setError("");
+                setSuccess("");
               }}
               className={cn(
                 "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
@@ -83,8 +122,15 @@ export function Login() {
 
         {/* Error */}
         {error && (
-          <div className="rounded-lg bg-status-at-risk-bg border border-status-at-risk/20 px-3 py-2.5 text-sm text-status-at-risk mb-4">
+          <div className="mb-4 rounded-lg border border-status-at-risk/20 bg-status-at-risk-bg px-3 py-2.5 text-sm text-status-at-risk">
             {error}
+          </div>
+        )}
+
+        {/* Success */}
+        {success && (
+          <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-2.5 text-sm text-green-400">
+            {success}
           </div>
         )}
 
@@ -92,11 +138,15 @@ export function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === "signup" && (
             <div>
-              <label htmlFor="full-name" className="block text-sm text-text-secondary mb-1.5">
+              <label
+                htmlFor="full_name"
+                className="mb-1.5 block text-sm text-text-secondary"
+              >
                 Full Name
               </label>
+
               <input
-                id="full-name"
+                id="full_name"
                 name="full_name"
                 required
                 placeholder="John Doe"
@@ -105,10 +155,15 @@ export function Login() {
             </div>
           )}
 
+          {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-sm text-text-secondary mb-1.5">
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-sm text-text-secondary"
+            >
               Email
             </label>
+
             <input
               id="email"
               name="email"
@@ -119,10 +174,15 @@ export function Login() {
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label htmlFor="password" className="block text-sm text-text-secondary mb-1.5">
+            <label
+              htmlFor="password"
+              className="mb-1.5 block text-sm text-text-secondary"
+            >
               Password
             </label>
+
             <div className="relative">
               <input
                 id="password"
@@ -133,10 +193,13 @@ export function Login() {
                 placeholder="••••••••"
                 className={cn(inputStyles, "pr-10")}
               />
+
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                onClick={() =>
+                  setShowPassword((prev) => !prev)
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-secondary"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -147,27 +210,20 @@ export function Login() {
             </div>
           </div>
 
-          {mode === "signup" && (
-            <div>
-              <label htmlFor="role" className="block text-sm text-text-secondary mb-1.5">
-                Role
-              </label>
-              <select id="role" name="role" className={inputStyles}>
-                <option value={UserRole.FIELD_AGENT}>Field Agent</option>
-                <option value={UserRole.ADMIN}>Admin</option>
-              </select>
-            </div>
-          )}
-
+          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
             className={cn(
               "flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-background",
-              "hover:bg-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              "transition-colors hover:bg-brand-hover",
+              "disabled:cursor-not-allowed disabled:opacity-50"
             )}
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+
             {loading
               ? "Please wait..."
               : mode === "login"
@@ -176,16 +232,25 @@ export function Login() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-text-muted mt-6">
+        {/* Bottom switch */}
+        <p className="mt-6 text-center text-xs text-text-muted">
           {mode === "login"
             ? "Don't have an account? "
             : "Already have an account? "}
+
           <button
+            type="button"
             onClick={() => {
-              setMode(mode === "login" ? "signup" : "login");
+              if (loading) return;
+
+              setMode(
+                mode === "login" ? "signup" : "login"
+              );
+
               setError("");
+              setSuccess("");
             }}
-            className="text-brand hover:underline font-medium"
+            className="font-medium text-brand hover:underline"
           >
             {mode === "login" ? "Sign up" : "Sign in"}
           </button>

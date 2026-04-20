@@ -82,14 +82,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signUp(
     email: string,
     password: string,
-    fullName: string,
-    role: UserRole = "FIELD_AGENT" as UserRole
+    fullName: string
   ) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName, role },
+        data: {
+          full_name: fullName,
+          role: "FIELD_AGENT", // Public signup always defaults to agent
+        },
       },
     });
     if (error) throw error;
