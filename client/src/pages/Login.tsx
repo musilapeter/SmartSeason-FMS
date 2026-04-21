@@ -1,34 +1,27 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sprout, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Leaf } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { cn } from "@/lib/utils";
 
 export function Login() {
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (loading) return; // prevents duplicate requests
-
+    if (loading) return;
     setLoading(true);
     setError("");
-    setSuccess("");
 
     const form = new FormData(e.currentTarget);
-
     const email = String(form.get("email") || "").trim();
     const password = String(form.get("password") || "").trim();
 
-    // Validation
     if (!email.includes("@")) {
       setError("Please enter a valid email address.");
       setLoading(false);
@@ -42,147 +35,51 @@ export function Login() {
     }
 
     try {
-      if (mode === "login") {
-        await signIn(email, password);
-        navigate("/");
-        return;
-      }
-
-      const fullName = String(form.get("full_name") || "").trim();
-      if (!fullName) {
-        setError("Full name is required.");
-        setLoading(false);
-        return;
-      }
-
-      await signUp(email, password, fullName);
-
-      setSuccess(
-        "Account created successfully. Check your email to confirm your account."
-      );
-
-      setMode("login");
+      await signIn(email, password);
+      navigate("/");
     } catch (err: any) {
-      if (err?.status === 429) {
-        setError("Too many requests. Please wait and try again.");
-      } else {
-        setError(err?.message || "Authentication failed.");
-      }
+      setError(err?.message || "Authentication failed.");
     } finally {
       setLoading(false);
     }
   }
 
-  const inputStyles = cn(
-    "w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition-colors focus:border-brand focus:ring-1 focus:ring-brand/30",
-    "placeholder:text-text-muted"
-  );
-
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm animate-fade-in">
-        {/* Logo */}
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 font-sans selection:bg-emerald-500 selection:text-white">
+      <div className="w-full max-w-md animate-fade-in rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
         <div className="mb-8 flex flex-col items-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/20 bg-brand/10">
-            <Sprout className="h-7 w-7 text-brand" />
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100">
+            <Leaf className="h-7 w-7 text-emerald-600" />
           </div>
-
-          <h1 className="text-xl font-bold text-text-primary">
-            SmartSeason
-          </h1>
-
-          <p className="mt-1 text-sm text-text-muted">
-            Field Monitoring System
-          </p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SmartSeason</h1>
+          <p className="mt-1 text-sm text-slate-500">Sign in to your account</p>
         </div>
 
-        {/* Tabs */}
-        <div className="mb-6 flex rounded-lg border border-border bg-surface p-1">
-          {(["login", "signup"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => {
-                if (loading) return;
-                setMode(tab);
-                setError("");
-                setSuccess("");
-              }}
-              className={cn(
-                "flex-1 rounded-md py-2 text-sm font-medium transition-colors",
-                mode === tab
-                  ? "bg-brand/10 text-brand"
-                  : "text-text-muted hover:text-text-secondary"
-              )}
-            >
-              {tab === "login" ? "Sign In" : "Sign Up"}
-            </button>
-          ))}
-        </div>
-
-        {/* Error */}
         {error && (
-          <div className="mb-4 rounded-lg border border-status-at-risk/20 bg-status-at-risk-bg px-3 py-2.5 text-sm text-status-at-risk">
+          <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-700 border border-red-100">
             {error}
           </div>
         )}
 
-        {/* Success */}
-        {success && (
-          <div className="mb-4 rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-2.5 text-sm text-green-400">
-            {success}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === "signup" && (
-            <div>
-              <label
-                htmlFor="full_name"
-                className="mb-1.5 block text-sm text-text-secondary"
-              >
-                Full Name
-              </label>
-
-              <input
-                id="full_name"
-                name="full_name"
-                required
-                placeholder="John Doe"
-                className={inputStyles}
-              />
-            </div>
-          )}
-
-          {/* Email */}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="email"
-              className="mb-1.5 block text-sm text-text-secondary"
-            >
-              Email
+            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-slate-700">
+              Email Address
             </label>
-
             <input
               id="email"
               name="email"
               type="email"
               required
               placeholder="you@example.com"
-              className={inputStyles}
+              className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder:text-slate-400"
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              className="mb-1.5 block text-sm text-text-secondary"
-            >
+            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-slate-700">
               Password
             </label>
-
             <div className="relative">
               <input
                 id="password"
@@ -191,69 +88,30 @@ export function Login() {
                 required
                 minLength={6}
                 placeholder="••••••••"
-                className={cn(inputStyles, "pr-10")}
+                className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-slate-900 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 placeholder:text-slate-400 pr-10"
               />
-
               <button
                 type="button"
-                onClick={() =>
-                  setShowPassword((prev) => !prev)
-                }
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors hover:text-text-secondary"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-2.5 text-sm font-semibold text-background",
-              "transition-colors hover:bg-brand-hover",
-              "disabled:cursor-not-allowed disabled:opacity-50"
-            )}
+            className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-
-            {loading
-              ? "Please wait..."
-              : mode === "login"
-              ? "Sign In"
-              : "Create Account"}
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        {/* Bottom switch */}
-        <p className="mt-6 text-center text-xs text-text-muted">
-          {mode === "login"
-            ? "Don't have an account? "
-            : "Already have an account? "}
-
-          <button
-            type="button"
-            onClick={() => {
-              if (loading) return;
-
-              setMode(
-                mode === "login" ? "signup" : "login"
-              );
-
-              setError("");
-              setSuccess("");
-            }}
-            className="font-medium text-brand hover:underline"
-          >
-            {mode === "login" ? "Sign up" : "Sign in"}
-          </button>
+        <p className="mt-8 text-center text-sm text-slate-500">
+          Need an account? Contact your administrator.
         </p>
       </div>
     </div>

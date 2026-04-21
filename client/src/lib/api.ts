@@ -5,6 +5,7 @@ import type {
   CreateFieldPayload,
   CreateFieldUpdatePayload,
   ApiResponse,
+  Profile,
 } from "@shared/index";
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
@@ -67,6 +68,21 @@ export async function addFieldUpdate(
   payload: CreateFieldUpdatePayload
 ): Promise<FieldUpdate> {
   return apiFetch<FieldUpdate>(`/fields/${fieldId}/updates`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+// ─── Admin Users API ────────────────────────────────────────
+
+export async function fetchUsers(): Promise<Profile[]> {
+  return apiFetch<Profile[]>("/admin/users");
+}
+
+export async function createAgentUser(
+  payload: Partial<Profile> & { email: string; password?: string }
+): Promise<Profile> {
+  return apiFetch<Profile>("/admin/users", {
     method: "POST",
     body: JSON.stringify(payload),
   });

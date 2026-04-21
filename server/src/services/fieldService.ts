@@ -16,9 +16,9 @@ const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
  *
  * Rules:
  *  - Completed  → stage is Harvested
- *  - At Risk    → stage is Planted/Growing AND
+ *  - At Risk    → stage is Planted/Growing/Ready AND
  *                  (no updates in 7 days OR last note mentions "pest"/"disease")
- *  - Active     → stage is Planted/Growing AND updated within 7 days
+ *  - Active     → stage is Planted/Growing/Ready AND updated within 7 days
  */
 export function computeStatus(
   field: Field,

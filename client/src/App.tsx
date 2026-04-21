@@ -6,44 +6,34 @@ import { FieldDetail } from "@/pages/FieldDetail";
 import { Login } from "@/pages/Login";
 import type { ReactNode } from "react";
 
-/**
- * ProtectedRoute — redirects to /login if not authenticated.
- */
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-brand" />
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-500" />
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   return <>{children}</>;
 }
 
-/**
- * GuestRoute — redirects to / if already authenticated.
- */
 function GuestRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-brand" />
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-emerald-500" />
       </div>
     );
   }
 
-  if (user) {
-    return <Navigate to="/" replace />;
-  }
+  if (user) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }
@@ -53,7 +43,6 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Public */}
           <Route
             path="/login"
             element={
@@ -63,7 +52,6 @@ export default function App() {
             }
           />
 
-          {/* Protected */}
           <Route
             element={
               <ProtectedRoute>
@@ -75,7 +63,6 @@ export default function App() {
             <Route path="/fields/:id" element={<FieldDetail />} />
           </Route>
 
-          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

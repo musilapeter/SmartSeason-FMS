@@ -6,9 +6,12 @@ export const UserRole = {
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
+// Removed duplicate Profile
+
 export const CropStage = {
   Planted: "Planted",
   Growing: "Growing",
+  Ready: "Ready",
   Harvested: "Harvested",
 } as const;
 export type CropStage = (typeof CropStage)[keyof typeof CropStage];

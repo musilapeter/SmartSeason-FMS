@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fieldRoutes from "./routes/fields.js";
+import adminRoutes from "./routes/admin.js";
 
 // Load env from root .env file
 import { join } from "path";
@@ -28,6 +29,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/fields", fieldRoutes);
+app.use("/api/admin", adminRoutes);
 
 // ─── Start ──────────────────────────────────────────────────
 
