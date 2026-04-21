@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { Dashboard } from "@/pages/Dashboard";
 import { FieldDetail } from "@/pages/FieldDetail";
 import { Login } from "@/pages/Login";
+import { Signup } from "@/pages/Signup";
 import type { ReactNode } from "react";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -48,6 +49,15 @@ export default function App() {
             element={
               <GuestRoute>
                 <Login />
+              </GuestRoute>
+            }
+          />
+
+          <Route
+            path="/signup"
+            element={
+              <GuestRoute>
+                <Signup />
               </GuestRoute>
             }
           />
