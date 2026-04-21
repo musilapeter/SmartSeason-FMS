@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
-import { authenticate, requireRole } from "../middleware/auth.js";
+import { authenticate, requireRole } from "../middleware/auth";
 import {
   getAllFieldsWithStatus,
   getFieldById,
   createField,
   addFieldUpdate,
-} from "../services/fieldService.js";
-import { UserRole } from "../../../shared/index.js";
+} from "../services/fieldService";
+import { UserRole } from "../../../shared/index";
 
 const router = Router();
 

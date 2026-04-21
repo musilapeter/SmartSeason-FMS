@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { supabaseAdmin } from "../lib/supabase.js";
-import { UserRole, AuthUser } from "../../../shared/index.js";
+import { supabaseAdmin } from "../lib/supabase";
+import { UserRole, AuthUser } from "../../../shared/index";
 
 // Extend Express Request to include our auth user
 declare global {

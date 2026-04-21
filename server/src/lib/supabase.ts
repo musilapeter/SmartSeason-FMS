@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import { join } from "path";
 dotenv.config({ path: join(process.cwd(), "../.env") });
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.SUPABASE_URL || "https://dummy.supabase.co";
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy";
 
 /*
  Admin client — uses service_role key to bypass RLS.
@@ -27,7 +27,7 @@ export const supabaseAdmin: SupabaseClient = createClient(
  This respects RLS policies for that user.
  */
 export function createUserClient(accessToken: string): SupabaseClient {
-  return createClient(supabaseUrl, process.env.SUPABASE_ANON_KEY!, {
+  return createClient(supabaseUrl, process.env.SUPABASE_ANON_KEY || "dummy", {
     global: {
       headers: { Authorization: `Bearer ${accessToken}` },
     },

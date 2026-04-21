@@ -1,11 +1,11 @@
-import { supabaseAdmin } from "../lib/supabase.js";
+import { supabaseAdmin } from "../lib/supabase";
 import {
   Field,
   FieldUpdate,
   FieldWithStatus,
   ComputedStatus,
   CropStage,
-} from "../../../shared/index.js";
+} from "../../../shared/index";
 
 // ─── Status Engine ──────────────────────────────────────────
 

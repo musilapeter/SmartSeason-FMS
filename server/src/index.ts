@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import fieldRoutes from "./routes/fields.js";
-import adminRoutes from "./routes/admin.js";
+import fieldRoutes from "./routes/fields";
+import adminRoutes from "./routes/admin";
 
 // Load env from root .env file
 import { join } from "path";
