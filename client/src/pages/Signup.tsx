@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Loader2, Eye, EyeOff, Sprout } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 export function Signup() {
   const { signUp } = useAuth();
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
