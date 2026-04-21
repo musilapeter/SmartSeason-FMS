@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
+        emailRedirectTo: window.location.origin,
         data: {
           full_name: fullName,
           role: "FIELD_AGENT", // Public signup always defaults to agent

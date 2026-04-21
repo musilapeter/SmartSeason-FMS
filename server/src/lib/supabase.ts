@@ -1,8 +1,4 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
-
-import { join } from "path";
-dotenv.config({ path: join(process.cwd(), "../.env") });
 
 const supabaseUrl = process.env.SUPABASE_URL || "https://dummy.supabase.co";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "dummy";

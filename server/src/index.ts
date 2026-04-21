@@ -1,12 +1,17 @@
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import fieldRoutes from "./routes/fields";
 import adminRoutes from "./routes/admin";
 
-// Load env from root .env file
-import { join } from "path";
-dotenv.config({ path: join(process.cwd(), "../.env") });
+// Vercel securely injects environment variables natively.
+// Only load dotenv locally.
+if (process.env.NODE_ENV !== "production") {
+  import("dotenv").then((dotenv) => {
+    import("path").then(({ join }) => {
+      dotenv.config({ path: join(process.cwd(), "../.env") });
+    });
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
