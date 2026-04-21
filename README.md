@@ -34,11 +34,11 @@ A lightweight, robust web application built to help track crop progress across m
    ```
 3. The interface will be accessible at `http://localhost:5173`.
 
-### Option 3: Deploying to Vercel
-1. Hook your GitHub repository directly to Vercel.
-2. Set the **Root Directory** inside the Vercel project settings to `client/`.
-3. Vercel will automatically detect Vite and run `npm install` and `npm run build`.
-4. Ensure you set the `VITE_API_URL` environment variable within Vercel pointing to wherever your Express backend is hosted!
+### Option 3: Deploying to Vercel (Monolithic Deployment)
+Because the configuration includes a unified `vercel.json` file natively routing the frontend AND the backend, compiling this entire monorepo is seamless!
+1. Log into your Vercel Dashboard and click "Add New Project", importing this repository directly from GitHub.
+2. Vercel will automatically read the `vercel.json` and deploy both your React Vite application and your Node.js server seamlessly (converting your Express backend into auto-scaling Serverless Functions).
+3. Under Environment Variables in the setup, ensure your `.env` variables from Supabase are loaded! (You **do not** need to manually set `VITE_API_URL` anymore, it automatically defaults to the same domain because it routes to `/api`).
 
 ---
 

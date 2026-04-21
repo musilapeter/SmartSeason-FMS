@@ -33,7 +33,11 @@ app.use("/api/admin", adminRoutes);
 
 // ─── Start ──────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`\n🌱 SmartSeason API running on http://localhost:${PORT}`);
-  console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`\n🌱 SmartSeason API running on http://localhost:${PORT}`);
+    console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
+  });
+}
+
+export default app;
