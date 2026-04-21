@@ -1,0 +1,82 @@
+# 🌾 SmartSeason - Field Monitoring System
+
+A lightweight, robust web application built to help track crop progress across multiple fields during a growing season. The system seamlessly handles multi-user roles, providing administrators with a powerful oversight dashboard and field agents with a streamlined, mobile-friendly interface for updating crop statuses.
+
+---
+
+## 🚀 Setup Instructions
+
+### Option 1: Local Development (Node.js)
+1. **Clone the repository.**
+2. **Install all dependencies** from the root:
+   ```bash
+   npm install
+   ```
+3. **Environment Setup**: 
+   Ensure you have your `.env` file at the root configuring Supabase and your API.
+   ```env
+   VITE_API_URL=http://localhost:3001/api
+   ```
+4. **Run both the client and server concurrently**:
+   ```bash
+   # Run the server in a separate terminal:
+   cd server && npm run dev
+   
+   # Run the client in another terminal:
+   cd client && npm run dev
+   ```
+
+### Option 2: Docker / Docker Compose
+1. Ensure Docker Desktop is installed.
+2. Run the composition:
+   ```bash
+   docker-compose up --build
+   ```
+3. The interface will be accessible at `http://localhost:5173`.
+
+### Option 3: Deploying to Vercel
+1. Hook your GitHub repository directly to Vercel.
+2. Set the **Root Directory** inside the Vercel project settings to `client/`.
+3. Vercel will automatically detect Vite and run `npm install` and `npm run build`.
+4. Ensure you set the `VITE_API_URL` environment variable within Vercel pointing to wherever your Express backend is hosted!
+
+---
+
+## 🧠 Design Decisions
+
+1. **Elegant Flat Architecture (Frontend)**:
+   I specifically avoided an over-engineered nested routing system. Instead, the application relies on a unified `<Layout />` and `<Dashboard />` component. The views automatically morph natively based on whether the authenticated user is an **Admin** or a **Field Agent**, drastically reducing code duplication and making it incredibly straightforward to maintain.
+   
+2. **Premium Light Theme (UI)**:
+   The application intentionally eschews default dark-mode styling for a crisp, tailored "Light Theme" emphasizing green/emerald core brand colors, glassmorphic cards, and pulse animations. This establishes an organic, modern, and accessible experience suitable for outdoor use by field agents.
+
+3. **Decoupled Monorepo Structure**:
+   The `/shared` folder exports precise TypeScript type definitions and constants (`CropStage`) perfectly synced between the backend Express routes and the frontend React components, preventing any data mismatches over the wire. `App.tsx` and the core views handle only DOM rendering, delegating API logic entirely to `lib/api.ts`.
+
+4. **Computed Field Status Lifecycle**:
+   Instead of forcing users to manually determine if a field is "At Risk", the application dynamically computes field health based strictly on empirical properties parsed from agent inputs. 
+
+---
+
+## ⚙️ Field Status Logic (Computed Status)
+
+As requested, each field maintains a real-time tracking status. Our logic evaluates the field based on the following strict ruleset dynamically computed in the backend:
+
+- **Harvested -> Completed**: Any field marked specifically as "Harvested" instantly and permanently surfaces as \"Completed\".
+- **Stale or Bad Notes -> At Risk**: For fields currently active (Planted, Growing, Ready):
+    - If there hasn't been a recorded logged update in **7 days**, it flags as "At Risk".
+    - If the latest observation note contains concerning keywords (e.g., `"pest"`, `"disease"`), it automatically flags as "At Risk" utilizing natural inference.
+- **Healthy -> Active**: If it is Planted, Growing, or Ready, has been updated recently, and no bad keywords are detected in the latest note, the field stays \"Active\".
+
+---
+
+## 🤔 Assumptions Made
+
+1. **Authentication Scoping Mechanism**:
+   We assume that public signups made through the newly implemented UI naturally default to the "Field Agent" role. Administrators cannot randomly sign up; they must manually elevate their permissions directly inside the database `profiles` table to uphold security.
+
+2. **Email Verification enforced by Supabase**:
+   We assume Supabase Email Confirmations are toggled **ON** in the associated project configuration. Therefore, the signup logic pauses and directs users to a "Check your email" wrapper rather than instantly signing them in. 
+
+3. **Row Level Security (RLS) & Backend Trust**:
+   To strictly execute the exact business logic and avoid locking the frontend due to complex Postgres RLS triggers, the `server/` routes utilize `supabaseAdmin` keys to orchestrate field status creation securely on the backend layer on behalf of the users (verified by incoming JWTs). The Express server completely controls data consistency.
