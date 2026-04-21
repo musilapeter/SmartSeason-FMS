@@ -17,14 +17,11 @@ A lightweight, robust web application built to help track crop progress across m
    ```env
    VITE_API_URL=http://localhost:3001/api
    ```
-4. **Run both the client and server concurrently**:
+4. **Run the entire application concurrently**:
    ```bash
-   # Run the server in a separate terminal:
-   cd server && npm run dev
-   
-   # Run the client in another terminal:
-   cd client && npm run dev
+   npm run dev
    ```
+   *This single command leverages workspaces to build the API and launch the Vite client simultaneously!*
 
 ### Option 2: Docker / Docker Compose
 1. Ensure Docker Desktop is installed.
@@ -37,8 +34,9 @@ A lightweight, robust web application built to help track crop progress across m
 ### Option 3: Deploying to Vercel (Monolithic Deployment)
 Because the configuration includes a unified `vercel.json` file natively routing the frontend AND the backend, compiling this entire monorepo is seamless!
 1. Log into your Vercel Dashboard and click "Add New Project", importing this repository directly from GitHub.
-2. Vercel will automatically read the `vercel.json` and deploy both your React Vite application and your Node.js server seamlessly (converting your Express backend into auto-scaling Serverless Functions).
-3. Under Environment Variables in the setup, ensure your `.env` variables from Supabase are loaded! (You **do not** need to manually set `VITE_API_URL` anymore, it automatically defaults to the same domain because it routes to `/api`).
+2. Ensure you leave the **Root Directory set to `./`** (do not select `client`). 
+3. Vercel will automatically read the `vercel.json` file at the root. It will run `npm run build` across all workspaces (`shared`, `server`, `client`) and deploy both your React Vite application and your Node.js server seamlessly (converting your Express backend into auto-scaling Serverless Functions mapped to `/api`).
+4. Under Environment Variables in the setup, ensure your `.env` variables from Supabase are loaded! (You **do not** need to manually set `VITE_API_URL` anymore, it automatically defaults to the same domain because it routes to `/api`).
 
 ---
 
