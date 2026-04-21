@@ -24,21 +24,21 @@ export function Layout() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="text-sm">
-                <span className="text-slate-500 mr-2">Logged in as</span>
-                <span className="font-medium text-slate-800">
-                  {user?.user_metadata?.full_name || user?.email}
+            <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center text-sm">
+                <span className="font-medium text-slate-800 truncate max-w-[80px] sm:max-w-[200px]">
+                  {user?.user_metadata?.full_name?.split(" ")[0] || user?.email?.split("@")[0]}
                 </span>
-                <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] sm:text-xs font-medium text-slate-800">
                   {role === "ADMIN" ? "Admin" : "Agent"}
                 </span>
               </div>
               <button
                 onClick={handleSignOut}
-                className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                className="rounded-md px-2 sm:px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               >
-                Sign out
+                <span className="hidden sm:inline">Sign out</span>
+                <span className="sm:hidden">Exit</span>
               </button>
             </div>
           </div>
