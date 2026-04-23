@@ -1,37 +1,33 @@
 -- ============================================================
--- Fix RLS policies for admin access to profiles
--- Run this in your Supabase SQL Editor
+-- DEFINITIVE FIX: Admin profile visibility
+-- Run ALL of this in your Supabase SQL Editor
 -- ============================================================
 
--- Step 1: Check what profiles exist
-SELECT id, full_name, role, created_at FROM public.profiles;
+-- Step 1: Create a helper function that bypasses RLS to check admin status
+-- This is the standard Supabase pattern for self-referencing policies
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'ADMIN'
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
 
--- Step 2: Sync any auth users missing from profiles
-INSERT INTO public.profiles (id, full_name, role)
-SELECT 
-  id, 
-  COALESCE(raw_user_meta_data->>'full_name', 'Agent ' || substr(id::text, 1, 8)),
-  COALESCE(NULLIF(raw_user_meta_data->>'role', ''), 'FIELD_AGENT')::public.user_role
-FROM auth.users
-WHERE id NOT IN (SELECT id FROM public.profiles)
-ON CONFLICT (id) DO NOTHING;
-
--- Step 3: Drop the broken self-referencing admin policy
+-- Step 2: Drop ALL existing SELECT policies on profiles to start clean
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 
--- Step 4: Recreate using auth.jwt() instead of self-referencing query
--- This avoids the circular RLS evaluation problem entirely
+-- Step 3: Recreate clean policies using the helper function
+CREATE POLICY "Users can view own profile"
+  ON profiles FOR SELECT
+  USING (auth.uid() = id);
+
 CREATE POLICY "Admins can view all profiles"
   ON profiles FOR SELECT
-  USING (
-    (auth.jwt() ->> 'role') = 'service_role'
-    OR EXISTS (
-      SELECT 1 FROM auth.users u
-      WHERE u.id = auth.uid()
-        AND (u.raw_user_meta_data ->> 'role') = 'ADMIN'
-    )
-    OR auth.uid() = id
-  );
+  USING (public.is_admin());
 
--- Step 5: Verify profiles are visible
-SELECT id, full_name, role FROM public.profiles;
+-- Step 4: Verify your profiles exist and have correct roles
+SELECT id, full_name, role, created_at FROM public.profiles ORDER BY created_at;
+
+-- Step 5: Check how many FIELD_AGENT profiles there are
+SELECT count(*) as agent_count FROM public.profiles WHERE role = 'FIELD_AGENT';
