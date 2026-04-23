@@ -168,12 +168,15 @@ export async function addFieldUpdate(
 }
 
 export async function fetchUsers(): Promise<Profile[]> {
+  // Fetch ALL profiles — RLS self-referencing policies can silently
+  // return empty results when filtering server-side, so we filter client-side.
   const { data, error } = await supabase
     .from("profiles")
-    .select("*")
-    .eq("role", "FIELD_AGENT");
+    .select("*");
 
   if (error) throw new Error(error.message);
+
+  console.log("[fetchUsers] All profiles returned:", data);
   return data as Profile[];
 }
 
