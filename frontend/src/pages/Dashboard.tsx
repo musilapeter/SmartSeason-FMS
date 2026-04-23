@@ -23,9 +23,10 @@ export function Dashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const isDev = import.meta.env.DEV;
       const [data, health] = await Promise.all([
         fetchFields(),
-        fetchBackendHealth().catch(() => null)
+        isDev ? fetchBackendHealth().catch(() => null) : Promise.resolve(null)
       ]);
       
       if (health) {
