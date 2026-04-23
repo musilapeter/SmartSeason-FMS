@@ -1,80 +1,164 @@
-# 🌾 SmartSeason - Field Monitoring System
+# 🌾 SmartSeason — Field Monitoring System
 
-A lightweight, robust web application built to help track crop progress across multiple fields during a growing season. The system seamlessly handles multi-user roles, providing administrators with a powerful oversight dashboard and field agents with a streamlined, mobile-friendly interface for updating crop statuses.
+A robust, role-based web application for tracking crop progress across multiple agricultural fields during a growing season. Administrators get a powerful oversight dashboard to manage fields and assign agents, while field agents receive a streamlined, mobile-friendly interface for submitting crop status updates.
+
+---
+
+## 📁 Project Structure
+
+This project is organized as a **monorepo** using npm workspaces:
+
+```
+smartseason/
+├── frontend/          # Vite + React + TypeScript SPA
+│   ├── src/
+│   │   ├── components/    # Reusable UI components (Layout, StatusBadge, etc.)
+│   │   ├── lib/           # API client, Supabase client, auth context
+│   │   ├── pages/         # Route-level pages (Dashboard, FieldDetail, Login, Signup)
+│   │   │   └── admin/     # Admin-only pages (AdminDashboard, UsersManager, FieldsManager)
+│   │   └── types/         # Shared TypeScript type definitions
+│   ├── public/            # Static assets
+│   └── vite.config.ts     # Vite config with API proxy
+├── backend/           # Express + TypeScript API server
+│   └── src/
+│       └── index.ts       # Server entry point with health check endpoint
+├── supabase/          # Database migration files
+│   └── migrations/
+│       └── 001_initial_schema.sql
+├── package.json       # Root workspace config + dev scripts
+├── vercel.json        # Vercel deployment configuration
+└── .env               # Environment variables (not committed)
+```
 
 ---
 
 ## 🚀 Setup Instructions
 
-### Option 1: Local Development (Node.js)
-1. **Clone the repository.**
-2. **Install all dependencies** from the root:
-   ```bash
-   npm install
-   ```
-3. **Environment Setup**: 
-   Ensure you have your `.env` file at the root configuring Supabase and your API.
-   ```env
-   VITE_API_URL=http://localhost:3001/api
-   ```
-4. **Run the entire application concurrently**:
-   ```bash
-   npm run dev
-   ```
-   *This single command leverages workspaces to build the API and launch the Vite client simultaneously!*
+### Prerequisites
+- **Node.js** v18+ and **npm** v9+
+- A [Supabase](https://supabase.com) project with the initial schema migration applied
 
-### Option 2: Docker / Docker Compose
-1. Ensure Docker Desktop is installed.
-2. Run the composition:
-   ```bash
-   docker-compose up --build
-   ```
-3. The interface will be accessible at `http://localhost:5173`.
+### 1. Clone & Install
 
-### Option 3: Deploying to Vercel (Monolithic Deployment)
-Because the configuration includes a unified `vercel.json` file natively routing the frontend AND the backend, compiling this entire monorepo is seamless!
-1. Log into your Vercel Dashboard and click "Add New Project", importing this repository directly from GitHub.
-2. Ensure you leave the **Root Directory set to `./`** (do not select `client`). 
-3. Vercel will automatically read the `vercel.json` file at the root. It will run `npm run build` across all workspaces (`shared`, `server`, `client`) and deploy both your React Vite application and your Node.js server seamlessly (converting your Express backend into auto-scaling Serverless Functions mapped to `/api`).
-4. Under Environment Variables in the setup, ensure your `.env` variables from Supabase are loaded! (You **do not** need to manually set `VITE_API_URL` anymore, it automatically defaults to the same domain because it routes to `/api`).
+```bash
+git clone https://github.com/musilapeter/SmartSeason-FMS.git
+cd SmartSeason-FMS
+npm install
+```
+
+npm workspaces will automatically install dependencies for both `frontend/` and `backend/`.
+
+### 2. Environment Variables
+
+Create a `.env` file in the **project root** (not inside frontend or backend):
+
+```env
+# Supabase Configuration
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Server
+PORT=3001
+NODE_ENV=development
+
+# Client (prefixed with VITE_ for Vite exposure)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_API_URL=http://localhost:3001/api
+```
+
+The frontend's `vite.config.ts` is configured with `envDir: '../'` to read this root-level `.env` file.
+
+### 3. Database Setup
+
+Apply the schema migration by running the contents of `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor. This creates:
+- `profiles` table (linked to Supabase Auth)
+- `fields` table (agricultural fields being monitored)
+- `field_updates` table (timestamped crop observations)
+- Row Level Security (RLS) policies
+- Auto-profile creation trigger on signup
+
+### 4. Run Locally
+
+```bash
+npm run dev
+```
+
+This single command uses `concurrently` to start both:
+- **Frontend** → Vite dev server on `http://localhost:5173`
+- **Backend** → Express API server on `http://localhost:3001`
+
+The frontend automatically proxies all `/api` requests to the backend.
 
 ---
 
-## 🧠 Design Decisions
+## ☁️ Deploying to Vercel
 
-1. **Elegant Flat Architecture (Frontend)**:
-   I specifically avoided an over-engineered nested routing system. Instead, the application relies on a unified `<Layout />` and `<Dashboard />` component. The views automatically morph natively based on whether the authenticated user is an **Admin** or a **Field Agent**, drastically reducing code duplication and making it incredibly straightforward to maintain.
-   
-2. **Premium Light Theme (UI)**:
-   The application intentionally eschews default dark-mode styling for a crisp, tailored "Light Theme" emphasizing green/emerald core brand colors, glassmorphic cards, and pulse animations. This establishes an organic, modern, and accessible experience suitable for outdoor use by field agents.
+The project includes a `vercel.json` that handles monorepo deployment:
 
-3. **Decoupled Monorepo Structure**:
-   The `/shared` folder exports precise TypeScript type definitions and constants (`CropStage`) perfectly synced between the backend Express routes and the frontend React components, preventing any data mismatches over the wire. `App.tsx` and the core views handle only DOM rendering, delegating API logic entirely to `lib/api.ts`.
+1. Import this repository in your [Vercel Dashboard](https://vercel.com).
+2. Leave the **Root Directory** set to `./`.
+3. Add your environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, etc.) in the Vercel project settings.
+4. Vercel will automatically run `npm run build`, which compiles both workspaces, and serve the frontend from `frontend/dist`.
 
-4. **Computed Field Status Lifecycle**:
-   Instead of forcing users to manually determine if a field is "At Risk", the application dynamically computes field health based strictly on empirical properties parsed from agent inputs. 
+> **Note:** The Express backend is used for local development only. In production, the frontend communicates directly with Supabase via the client SDK and RLS policies handle data security.
+
+---
+
+## 👥 User Roles
+
+| Role | Capabilities |
+|------|-------------|
+| **Admin** | View all fields, create new fields, assign agents, manage users, view all updates |
+| **Field Agent** | View assigned fields only, submit crop stage updates and observation notes |
+
+- Public signups via `/signup` default to the **Field Agent** role.
+- Admin privileges must be set directly in the `profiles` table in Supabase.
 
 ---
 
 ## ⚙️ Field Status Logic (Computed Status)
 
-As requested, each field maintains a real-time tracking status. Our logic evaluates the field based on the following strict ruleset dynamically computed in the backend:
+Each field's health status is **dynamically computed** — not manually set:
 
-- **Harvested -> Completed**: Any field marked specifically as "Harvested" instantly and permanently surfaces as \"Completed\".
-- **Stale or Bad Notes -> At Risk**: For fields currently active (Planted, Growing, Ready):
-    - If there hasn't been a recorded logged update in **7 days**, it flags as "At Risk".
-    - If the latest observation note contains concerning keywords (e.g., `"pest"`, `"disease"`), it automatically flags as "At Risk" utilizing natural inference.
-- **Healthy -> Active**: If it is Planted, Growing, or Ready, has been updated recently, and no bad keywords are detected in the latest note, the field stays \"Active\".
+| Condition | Status |
+|-----------|--------|
+| Field stage is `Harvested` | **Completed** |
+| No updates recorded, OR last update is older than **7 days**, OR latest note contains keywords like `"pest"` or `"disease"` | **At Risk** |
+| Recently updated with no concerning keywords | **Active** |
 
 ---
 
-## 🤔 Assumptions Made
+## 🧠 Design Decisions
 
-1. **Authentication Scoping Mechanism**:
-   We assume that public signups made through the newly implemented UI naturally default to the "Field Agent" role. Administrators cannot randomly sign up; they must manually elevate their permissions directly inside the database `profiles` table to uphold security.
+1. **Monorepo with npm Workspaces**: The frontend and backend live side-by-side in a single repository, sharing a root `package.json` for orchestration. A single `npm install` and `npm run dev` gets everything running.
 
-2. **Email Verification enforced by Supabase**:
-   We assume Supabase Email Confirmations are toggled **ON** in the associated project configuration. Therefore, the signup logic pauses and directs users to a "Check your email" wrapper rather than instantly signing them in. 
+2. **Adaptive Dashboard**: Rather than building separate admin and agent interfaces, the `<Dashboard />` component dynamically adapts its UI based on the authenticated user's role — reducing code duplication while maintaining clear separation of concerns.
 
-3. **Row Level Security (RLS) & Backend Trust**:
-   To strictly execute the exact business logic and avoid locking the frontend due to complex Postgres RLS triggers, the `server/` routes utilize `supabaseAdmin` keys to orchestrate field status creation securely on the backend layer on behalf of the users (verified by incoming JWTs). The Express server completely controls data consistency.
+3. **Supabase-First Architecture**: Authentication, database, and Row Level Security are all handled by Supabase. The Express backend serves as a lightweight API layer for any server-side logic, while the frontend uses the Supabase JS client directly for real-time data access.
+
+4. **RLS with SECURITY DEFINER**: Admin profile visibility uses a `public.is_admin()` PostgreSQL function with `SECURITY DEFINER` to safely bypass RLS for admin role checks — avoiding the common circular policy trap with self-referencing tables.
+
+5. **Premium Light Theme**: A clean, modern UI using Tailwind CSS with emerald/green brand colors, glassmorphic cards, and subtle animations — designed for readability in outdoor field conditions.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TypeScript, Vite 8, Tailwind CSS 4, React Router 7 |
+| Backend | Express 4, TypeScript, tsx (dev server) |
+| Database | Supabase (PostgreSQL), Row Level Security |
+| Auth | Supabase Auth (email/password) |
+| Deployment | Vercel |
+| Monorepo | npm Workspaces, Concurrently |
+
+---
+
+## 📜 Assumptions
+
+1. **Supabase Email Confirmation** is enabled. Signups redirect users to a "Check your email" screen before granting access.
+2. **Admin elevation** is a manual database operation — there is no self-service admin registration to prevent unauthorized access.
+3. **Field agents are pre-registered** by an admin or via the public signup flow, and are assigned to fields through the admin dashboard.
