@@ -178,7 +178,7 @@ export async function fetchUsers(): Promise<Profile[]> {
 }
 
 export async function createAgentUser(
-  payload: Partial<Profile> & { email: string; password?: string }
+  _payload: Partial<Profile> & { email: string; password?: string }
 ): Promise<Profile> {
   // Because we removed the Admin API middleware, creating auth users bypasses the client unless using Supabase Edge Functions or explicit public signup defaults.
   // For simplicity since the pivot, we rely on the `SignUp` component. Admin proxy creation requires service bindings.

@@ -40,11 +40,15 @@ export function Dashboard() {
       }
 
       if (role === "ADMIN") {
-        const users = await fetchUsers();
-        setAgents(users.filter((u) => u.role === "FIELD_AGENT"));
+        try {
+          const users = await fetchUsers();
+          setAgents(users.filter((u) => u.role === "FIELD_AGENT"));
+        } catch (e: any) {
+          setError("Fetch users error: " + e.message);
+        }
       }
     } catch (err: any) {
-      setError(err.message);
+      setError("Load data error: " + err.message);
     } finally {
       setLoading(false);
     }
