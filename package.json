@@ -1,22 +1,16 @@
 {
-  "name": "smart-season-field-monitoring",
-  "version": "1.0.0",
+  "name": "smartseason-monorepo",
   "private": true,
-  "description": "SmartSeason Field Monitoring System — agricultural field tracking with RBAC and computed status engine",
   "workspaces": [
-    "client",
-    "server",
-    "shared"
+    "frontend",
+    "backend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "npm run dev --workspace=client",
-    "dev:server": "npm run dev --workspace=server",
-    "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "dev": "concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "build": "npm run build --workspaces --if-present",
+    "install:all": "npm install"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2",
-    "esbuild": "^0.28.0"
+    "concurrently": "^9.2.1"
   }
 }

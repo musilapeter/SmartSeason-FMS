@@ -9,9 +9,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared'),
+      '@shared': path.resolve(__dirname, './src/types'),
     },
   },
+  envDir: '../',
   server: {
     port: 5173,
     proxy: {
@@ -21,5 +22,4 @@ export default defineConfig({
       },
     },
   },
-  envDir: '../',
 })

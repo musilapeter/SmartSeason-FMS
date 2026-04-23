@@ -91,6 +91,59 @@ CREATE POLICY "View updates for accessible fields"
     )
   );
 
+-- ─── INSERT AND UPDATE POLICIES ─────────────────────────────
+
+-- Admins can view all profiles
+CREATE POLICY "Admins can view all profiles"
+  ON profiles FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles AS p
+      WHERE p.id = auth.uid() AND p.role = 'ADMIN'
+    )
+  );
+
+-- Admins can insert/update fields
+CREATE POLICY "Admins can insert fields"
+  ON fields FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'
+    )
+  );
+
+CREATE POLICY "Admins can update fields"
+  ON fields FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'
+    )
+  );
+
+-- Agents can update fields assigned to them
+CREATE POLICY "Agents can update assigned fields"
+  ON fields FOR UPDATE
+  USING (assigned_agent_id = auth.uid());
+
+-- Admins and Agents can insert field updates
+CREATE POLICY "Agents can insert field updates"
+  ON field_updates FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM fields
+      WHERE fields.id = field_updates.field_id
+        AND (
+          fields.assigned_agent_id = auth.uid()
+          OR EXISTS (
+            SELECT 1 FROM profiles
+            WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'
+          )
+        )
+    )
+  );
+
 -- ─── Auto-create profile on signup (optional trigger) ───────
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()

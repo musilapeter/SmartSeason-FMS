@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-import { fetchFields, createField, fetchUsers } from "@/lib/api";
+import { fetchFields, createField, fetchUsers, fetchBackendHealth } from "@/lib/api";
 import type { FieldWithStatus, Profile, CropStage } from "@shared/index";
 
 export function Dashboard() {
@@ -10,6 +10,7 @@ export function Dashboard() {
   const [agents, setAgents] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [backendHealth, setBackendHealth] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [newField, setNewField] = useState({
@@ -22,7 +23,14 @@ export function Dashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const data = await fetchFields();
+      const [data, health] = await Promise.all([
+        fetchFields(),
+        fetchBackendHealth().catch(() => null)
+      ]);
+      
+      if (health) {
+        setBackendHealth(health.message);
+      }
       
       // If agent, filter specifically (API should ideally handle this but fall back to client filter just in case)
       if (role === "FIELD_AGENT") {
@@ -94,6 +102,12 @@ export function Dashboard() {
       {error && (
         <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700">
           {error}
+        </div>
+      )}
+
+      {backendHealth && (
+        <div className="rounded-lg bg-indigo-50 p-4 text-sm text-indigo-700 border border-indigo-200">
+          <span className="font-semibold">Backend Status:</span> {backendHealth}
         </div>
       )}
 
